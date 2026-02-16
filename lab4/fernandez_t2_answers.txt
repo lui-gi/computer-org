@@ -1,0 +1,297 @@
+# Task 2 Answers
+Luigi Fernandez 
+
+# 1
+
+First, we need to calculate how many moves we need to make as well as set a move counter so we know when we make the correct amount of moves.
+I set these variables to register s1 and s2. s2 is initialized to 1.
+
+Next is the main logic of the program: for each move counter value (s2), we need to count how many trailing zeros it has in binary.
+The number of trailing zeros will correspond to the disk number that will move. 
+
+The way we find the number of trailing zeros is by using a temporary register t0, which holds the move counter (s2). Then, we check the LEAST significant bit repeatedly
+via andi t1, t0, 1 (s2 AND 1) --> If this returns 0, then we shift t0 to the right by 1. We also need to increment s3 (the disk id). If it reutnrs 1, s3 has the correct disk number.
+
+Now we take the formula we were given, which was (((x | x - 1) + 1) % 3 + 1), where x is the current count number. 
+We will use this formula to calculate the destination rod for the current move. We store the destination rod in s4. NNow that we calculated the correct destination rod, we can 
+print the whole step, which includes what disk we moved and what rod we moved it to. 
+
+After we print the whole step, we reach the near-end of the program, but not the complete end, because we need to repeat these moves until we reach the maximum moves that we 
+calculated earlier. Thus, we jump back to movedisk. However, assuming we DID reach the max amount of moves, I added a branch function that checks if our current move counter
+is greater than the maximum amount of moves. If so, it takes us to the end of our program and does not iterate anymore. In short, the top of the loop checks if s2 has exceeded s1,
+which tells us if we need to continue or to exit.
+
+# 2
+
+My demo was for 8 disks.
+
+# 3
+
+FOr a 15-disk Tower of Hanoi game, the bottom disk (14) is moved at move # 2^14. This is because (like my answer to question 1) the number of trailing zeros in s2 corresponds
+to the disk number to be moved. Thus, because we want to move disk 14, we need 14 trailing zeros, which means 2^14 = 16384. I also double-checked this based on the pattern for
+7, 8, and 9 disks, where the bottom disk was moved on move # 2^(numdisks). 
+
+# 4 
+
+The largest number of disks I can solve with this code is 30 disks. This is because in RISC-V, we have 32-bit SIGNED integers. Therefore, the most significant bit is reserved
+for the sign, which would be 2^31. We cannot do 32 disks, due to overflow (highest bit for 32-bit system is 2^31 because we begin at 2^0). 
+We cannot do 31 disks either, because at the bottom of my program, it increments by 1 THEN jumps back to the beginning. This means that the max amount of moves is 2^31 - 1, 
+but if we reach the max amount of moves, we increment to 2^31 which would result in an endless loop due to s2 > s1, where s1 is now a negative number (bit is reserved for signing).
+
+
+# OUTPUT FOR 8 DISKS:
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:3  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:4  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:3  to rod:3
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:5  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:3  to rod:1
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:4  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:3  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:6  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:3  to rod:3
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:4  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:3  to rod:1
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:5  to rod:3
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:3  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:4  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:3  to rod:3
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:7  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:3  to rod:1
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:4  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:3  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:5  to rod:1
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:3  to rod:3
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:4  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:3  to rod:1
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:6  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:3  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:4  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:3  to rod:3
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:5  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:3  to rod:1
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:2  to rod:1
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:4  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2
+Move disk:2  to rod:3
+Move disk:0  to rod:1
+Move disk:1  to rod:3
+Move disk:0  to rod:3
+Move disk:3  to rod:2
+Move disk:0  to rod:2
+Move disk:1  to rod:1
+Move disk:0  to rod:1
+Move disk:2  to rod:2
+Move disk:0  to rod:3
+Move disk:1  to rod:2
+Move disk:0  to rod:2

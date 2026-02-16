@@ -26,10 +26,14 @@ loop:
     sub a2, a2, a3
     j div
 loop_done:
+    # a1 register will hold the remainder value
     add a1, x0, a2
+
+    # 1 prints integer
     li a0, 1
     ecall
 
+    # 4 prints string
     li a0, 4
     la a1, newline
     ecall
