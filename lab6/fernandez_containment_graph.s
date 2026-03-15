@@ -6,29 +6,52 @@
 
 .data
 # ------------------------------------------------------------------------------
-# Number of points in the graph
+# Test Case 1: i(0,0), f(2,2), e(7,5), j(12,8) - n=4
 # ------------------------------------------------------------------------------
-n:          .word 4
-
-# ------------------------------------------------------------------------------
-# Points array - each point is stored as (x, y) pair (2 words = 8 bytes each)
-# Test Case 1: i(0,0), f(2,2), e(7,5), j(12,8)
-# ------------------------------------------------------------------------------
-points:     .word 0, 0          # point 0: i(0,0)
+n1:         .word 4
+points1:    .word 0, 0          # point 0: i(0,0)
             .word 2, 2          # point 1: f(2,2)
             .word 7, 5          # point 2: e(7,5)
             .word 12, 8         # point 3: j(12,8)
+adj1:       .space 64           # 4x4 = 16 words = 64 bytes
 
 # ------------------------------------------------------------------------------
-# Adjacency matrix - n x n matrix (4 x 4 = 16 words = 64 bytes)
-# adj[i][j] = 1 if there is an edge from point i to point j, 0 otherwise
-# Matrix layout (row-major order):
-#   adj[0][0], adj[0][1], adj[0][2], adj[0][3],
-#   adj[1][0], adj[1][1], adj[1][2], adj[1][3],
-#   adj[2][0], adj[2][1], adj[2][2], adj[2][3],
-#   adj[3][0], adj[3][1], adj[3][2], adj[3][3]
+# Test Case 2: i(0,0), e(7,5), h(1,7), j(12,8) - n=4
 # ------------------------------------------------------------------------------
-adj:        .space 64           # 16 words * 4 bytes = 64 bytes
+n2:         .word 4
+points2:    .word 0, 0          # point 0: i(0,0)
+            .word 7, 5          # point 1: e(7,5)
+            .word 1, 7          # point 2: h(1,7)
+            .word 12, 8         # point 3: j(12,8)
+adj2:       .space 64           # 4x4 = 16 words = 64 bytes
+
+# ------------------------------------------------------------------------------
+# Test Case 3: i(0,0), f(2,2), g(9,4), e(7,5), h(1,7), j(12,8) - n=6
+# ------------------------------------------------------------------------------
+n3:         .word 6
+points3:    .word 0, 0          # point 0: i(0,0)
+            .word 2, 2          # point 1: f(2,2)
+            .word 9, 4          # point 2: g(9,4)
+            .word 7, 5          # point 3: e(7,5)
+            .word 1, 7          # point 4: h(1,7)
+            .word 12, 8         # point 5: j(12,8)
+adj3:       .space 144          # 6x6 = 36 words = 144 bytes
+
+# ------------------------------------------------------------------------------
+# Strings for printing
+# ------------------------------------------------------------------------------
+header1:    .string "Test Case 1: Containment Graph"
+header2:    .string "Test Case 2: Containment Graph"
+header3:    .string "Test Case 3: Containment Graph"
+node_hdr:   .string "Nodes:"
+node_pre:   .string "  Point "
+coord_open: .string ": ("
+comma:      .string ", "
+coord_close:.string ")"
+adj_hdr:    .string "Adjacency Matrix:"
+space:      .string " "
+newline:    .string "\n"
+separator:  .string "=============================="
 
 .text
 .globl main
@@ -40,68 +63,210 @@ adj:        .space 64           # 16 words * 4 bytes = 64 bytes
 #   s2 = i (outer loop counter)
 #   s3 = j (inner loop counter)
 #   s4 = base address of adjacency matrix
-#   t0 = x_i (x coordinate of point i)
-#   t1 = y_i (y coordinate of point i)
-#   t2 = x_j (x coordinate of point j)
-#   t3 = y_j (y coordinate of point j)
-#   t4, t5, t6 = temporary values for calculations
+#   s5 = current test case number (1, 2, or 3)
+#   s6 = address of current header string
 # ==============================================================================
 
 main:
-    # Initialize registers
-    la      s0, points          # s0 = base address of points array
-    la      t0, n               # load address of n
-    lw      s1, 0(t0)           # s1 = n (number of points)
-    la      s4, adj             # s4 = base address of adjacency matrix
+    # ==================== TEST CASE 1 ====================
+    la      s0, points1
+    lw      s1, n1
+    la      s4, adj1
+    la      s6, header1
+    jal     run_test_case
 
-    li      s2, 0               # s2 = i = 0 (outer loop counter)
+    # ==================== TEST CASE 2 ====================
+    la      s0, points2
+    lw      s1, n2
+    la      s4, adj2
+    la      s6, header2
+    jal     run_test_case
 
-    # Outer loop: for i = 0 to n-1
+    # ==================== TEST CASE 3 ====================
+    la      s0, points3
+    lw      s1, n3
+    la      s4, adj3
+    la      s6, header3
+    jal     run_test_case
+
+    # Exit program
+    li      a0, 10
+    ecall
+
+# ==============================================================================
+# Subroutine: run_test_case
+# Builds adjacency matrix and prints output for current test case
+# ==============================================================================
+run_test_case:
+    mv      s7, ra              # save return address
+
+    # Build adjacency matrix
+    li      s2, 0               # i = 0
 outer_loop:
-    bge     s2, s1, end_program # if i >= n, exit outer loop
+    bge     s2, s1, print_output
 
-    li      s3, 0               # reset j = 0 at start of each outer iteration
-
-    # Inner loop: for j = 0 to n-1
+    li      s3, 0               # j = 0
 inner_loop:
-    bge     s3, s1, outer_next  # if j >= n, exit inner loop (go to outer_next)
+    bge     s3, s1, outer_next
 
-    beq     s2, s3, inner_next  # if i == j, skip (no self-loops)
+    beq     s2, s3, inner_next  # skip self-loops
 
-    # Load point[i] coordinates (x_i, y_i)
-    slli    t4, s2, 3           # t4 = i * 8 (offset for point[i])
-    add     t4, s0, t4          # t4 = address of point[i]
-    lw      t0, 0(t4)           # t0 = x_i (first word of point[i])
-    lw      t1, 4(t4)           # t1 = y_i (second word of point[i])
+    # Load point[i] coordinates
+    slli    t4, s2, 3
+    add     t4, s0, t4
+    lw      t0, 0(t4)           # x_i
+    lw      t1, 4(t4)           # y_i
 
-    # Load point[j] coordinates (x_j, y_j)
-    slli    t5, s3, 3           # t5 = j * 8 (offset for point[j])
-    add     t5, s0, t5          # t5 = address of point[j]
-    lw      t2, 0(t5)           # t2 = x_j (first word of point[j])
-    lw      t3, 4(t5)           # t3 = y_j (second word of point[j])
+    # Load point[j] coordinates
+    slli    t5, s3, 3
+    add     t5, s0, t5
+    lw      t2, 0(t5)           # x_j
+    lw      t3, 4(t5)           # y_j
 
-    # Containment check: if x_i <= x_j AND y_i <= y_j, add edge
-    bgt     t0, t2, inner_next  # if x_i > x_j, skip (not contained)
-    bgt     t1, t3, inner_next  # if y_i > y_j, skip (not contained)
+    # Containment check
+    bgt     t0, t2, inner_next
+    bgt     t1, t3, inner_next
 
-    # Both conditions passed: set adj[i][j] = 1
-    mul     t4, s2, s1          # t4 = i * n
-    add     t4, t4, s3          # t4 = i * n + j
-    slli    t4, t4, 2           # t4 = (i * n + j) * 4 (byte offset)
-    add     t4, s4, t4          # t4 = address of adj[i][j]
-    li      t5, 1               # t5 = 1
-    sw      t5, 0(t4)           # adj[i][j] = 1
+    # Set adj[i][j] = 1
+    mul     t4, s2, s1
+    add     t4, t4, s3
+    slli    t4, t4, 2
+    add     t4, s4, t4
+    li      t5, 1
+    sw      t5, 0(t4)
 
 inner_next:
-    addi    s3, s3, 1           # j++
-    j       inner_loop          # jump back to inner loop start
+    addi    s3, s3, 1
+    j       inner_loop
 
 outer_next:
-    addi    s2, s2, 1           # i++
-    j       outer_loop          # jump back to outer loop start
+    addi    s2, s2, 1
+    j       outer_loop
 
-    # Program end
-end_program:
-    li      a7, 10              # ecall 10 = exit program
-    ecall                       # terminate program
+# ==============================================================================
+# Print Output Section
+# ==============================================================================
+print_output:
+    # Print header
+    li      a0, 4
+    mv      a1, s6
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
 
+    # Print "Nodes:" header
+    li      a0, 4
+    la      a1, node_hdr
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
+
+    # Print each node
+    li      s2, 0
+print_nodes_loop:
+    bge     s2, s1, print_adj
+
+    li      a0, 4
+    la      a1, node_pre
+    ecall
+
+    li      a0, 1
+    mv      a1, s2
+    ecall
+
+    li      a0, 4
+    la      a1, coord_open
+    ecall
+
+    slli    t4, s2, 3
+    add     t4, s0, t4
+    li      a0, 1
+    lw      a1, 0(t4)
+    ecall
+
+    li      a0, 4
+    la      a1, comma
+    ecall
+
+    slli    t4, s2, 3
+    add     t4, s0, t4
+    li      a0, 1
+    lw      a1, 4(t4)
+    ecall
+
+    li      a0, 4
+    la      a1, coord_close
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
+
+    addi    s2, s2, 1
+    j       print_nodes_loop
+
+print_adj:
+    # Print adjacency matrix header
+    li      a0, 4
+    la      a1, newline
+    ecall
+    li      a0, 4
+    la      a1, adj_hdr
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
+
+    # Print adjacency matrix
+    li      s2, 0
+print_row_loop:
+    bge     s2, s1, print_done
+
+    li      s3, 0
+print_col_loop:
+    bge     s3, s1, print_row_end
+
+    mul     t4, s2, s1
+    add     t4, t4, s3
+    slli    t4, t4, 2
+    add     t4, s4, t4
+    li      a0, 1
+    lw      a1, 0(t4)
+    ecall
+
+    li      a0, 4
+    la      a1, space
+    ecall
+
+    addi    s3, s3, 1
+    j       print_col_loop
+
+print_row_end:
+    li      a0, 4
+    la      a1, newline
+    ecall
+
+    addi    s2, s2, 1
+    j       print_row_loop
+
+print_done:
+    # Print separator
+    li      a0, 4
+    la      a1, newline
+    ecall
+    li      a0, 4
+    la      a1, separator
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
+    li      a0, 4
+    la      a1, newline
+    ecall
+
+    mv      ra, s7              # restore return address
+    jr      ra                  # return
