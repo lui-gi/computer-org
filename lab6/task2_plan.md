@@ -176,3 +176,130 @@ Create lastname_t2questions.s with comments answering:
 - Test after each major step in RARS simulator
 - Check the adjacency matrix in memory after running to verify correctness
 - Compare output against expected graphs from the PDF
+
+---
+
+## Tournament Round: DFS Traversal
+
+The tournament requires a module to traverse the graph and print nodes in depth-first search order. The implementation that uses the least RAM wins.
+
+### DFS Algorithm
+```
+DFS(node):
+    if visited[node] == 1:
+        return
+    visited[node] = 1
+    print(node)
+    for each neighbor j where adj[node][j] == 1:
+        DFS(j)
+```
+
+### Expected DFS Output (starting from node 0)
+- Case 1: 0 -> 1 -> 2 -> 3 (i -> f -> e -> j)
+- Case 2: 0 -> 1 -> 3 -> 2 -> 3 or 0 -> 1 -> 3 -> 2 (i -> e -> j, then h -> j)
+- Case 3: 0 -> 1 -> 2 -> 5 -> 3 -> 4 (depends on adjacency order)
+- Case 4: 0 -> 1 -> 2 -> 4 -> 5 -> 3 (depends on adjacency order)
+
+---
+
+## Prompts for DFS Implementation (Tournament Round)
+
+### Prompt 11: Add Visited Array
+```
+Add a visited array to the .data section:
+- Allocate space for a visited array (n words, one per node)
+- For n=4 cases: .space 16 (4 words)
+- For n=6 cases: .space 24 (6 words)
+- Add a string label for the DFS header output
+```
+
+### Prompt 12: Add DFS Header Print
+```
+After printing the adjacency matrix, add code to:
+- Print a header "DFS Traversal:" followed by a newline
+- Reset the visited array to all zeros before starting DFS
+- Initialize s2 = 0 as the starting node (root)
+```
+
+### Prompt 13: Create the DFS Subroutine Structure
+```
+Create a dfs_visit subroutine that:
+- Takes the current node index in s2
+- Saves ra to s7 (or stack) since we'll make recursive calls
+- Checks if visited[s2] == 1, if so return immediately
+- Otherwise marks visited[s2] = 1 and prints the node index
+```
+
+### Prompt 14: Print the Current Node in DFS
+```
+Inside dfs_visit, after marking visited:
+- Print the node index (s2) using ecall 1
+- Print a space after the node index
+- This shows the DFS traversal order
+```
+
+### Prompt 15: Iterate Through Neighbors
+```
+Inside dfs_visit, after printing the node:
+- Save the current node to a saved register (s8)
+- Loop j from 0 to n-1
+- For each j, check if adj[current_node][j] == 1
+- If edge exists, set s2 = j and call dfs_visit recursively
+- Restore current node from s8 after each recursive call
+```
+
+### Prompt 16: Handle Recursive Calls with Stack
+```
+Update dfs_visit to use the stack for recursion:
+- Push ra and any saved registers to the stack at subroutine entry
+- Pop them before returning
+- This allows proper nested recursive calls
+- Use: addi sp, sp, -N to allocate, sw to save, lw to restore, addi sp, sp, N to deallocate
+```
+
+### Prompt 17: Call DFS from Main
+```
+In the print section, after printing the adjacency matrix:
+- Call a subroutine to clear the visited array (set all to 0)
+- Print the DFS header
+- Set s2 = 0 (start from node 0)
+- Call dfs_visit
+- Print a newline after DFS completes
+```
+
+### Prompt 18: Clear Visited Array Subroutine
+```
+Create a clear_visited subroutine that:
+- Loads the base address of the visited array
+- Loops from 0 to n-1
+- Stores 0 at each visited[i] location
+- Returns to caller
+```
+
+### Prompt 19: Test DFS Output
+```
+Run the program and verify DFS output for each test case:
+- Case 1: Should print nodes in order following i -> f -> e -> j
+- Case 2: Should print nodes following the graph structure
+- Case 3 & 4: Verify against expected graph traversal
+- Ensure no node is printed twice (visited check working)
+```
+
+### Prompt 20: Optimize for Minimum RAM (Tournament)
+```
+Review the implementation to minimize RAM usage:
+- Can we reuse the adjacency matrix space?
+- Can we use registers instead of memory where possible?
+- Can we eliminate any unnecessary .space allocations?
+- Consider using bits instead of words for visited array
+- Document total RAM used in bytes
+```
+
+---
+
+## RAM Optimization Ideas
+
+1. **Visited array**: Use 1 bit per node instead of 1 word (saves 3 bytes per node)
+2. **Reuse registers**: Minimize temporary memory usage
+3. **In-place operations**: Avoid duplicate data structures
+4. **Smaller data types**: Use .byte or .half where possible
