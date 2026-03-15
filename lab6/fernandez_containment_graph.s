@@ -38,11 +38,24 @@ points3:    .word 0, 0          # point 0: i(0,0)
 adj3:       .space 144          # 6x6 = 36 words = 144 bytes
 
 # ------------------------------------------------------------------------------
+# Test Case 4: i(0,0), f(3,3), l(7,4), e(5,5), h(10,7), j(12,8) - n=6
+# ------------------------------------------------------------------------------
+n4:         .word 6
+points4:    .word 0, 0          # point 0: i(0,0)
+            .word 3, 3          # point 1: f(3,3)
+            .word 7, 4          # point 2: l(7,4)
+            .word 5, 5          # point 3: e(5,5)
+            .word 10, 7         # point 4: h(10,7)
+            .word 12, 8         # point 5: j(12,8)
+adj4:       .space 144          # 6x6 = 36 words = 144 bytes
+
+# ------------------------------------------------------------------------------
 # Strings for printing
 # ------------------------------------------------------------------------------
 header1:    .string "Test Case 1: Containment Graph"
 header2:    .string "Test Case 2: Containment Graph"
 header3:    .string "Test Case 3: Containment Graph"
+header4:    .string "Test Case 4: Containment Graph"
 node_hdr:   .string "Nodes:"
 node_pre:   .string "  Point "
 coord_open: .string ": ("
@@ -87,6 +100,13 @@ main:
     lw      s1, n3
     la      s4, adj3
     la      s6, header3
+    jal     run_test_case
+
+    # ==================== TEST CASE 4 ====================
+    la      s0, points4
+    lw      s1, n4
+    la      s4, adj4
+    la      s6, header4
     jal     run_test_case
 
     # Exit program
